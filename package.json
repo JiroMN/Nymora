@@ -1,16 +1,19 @@
 {
-  "name": "webflow-link",
+  "name": "Nymora",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack",
-    "dev": "webpack --watch --progress"
+    "dev": "webpack serve --mode development",
+    "watch": "webpack --watch --progress"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "webpack-cli": "^6.0.1"
+    "webpack": "^5.111.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^6.0.0"
   }
 }

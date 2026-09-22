@@ -21,10 +21,11 @@ rmMQ.addListener?.((e) => (reducedMotion = e.matches));
 const has = (s) => !!nextPage.querySelector(s);
 
 let staggerDefault = 0.05;
-let durationDefault = 0.6;
+let durationDefault = 0.8;
 
 CustomEase.create("osmo", "0.625, 0.05, 0, 1");
-gsap.defaults({ ease: "osmo", duration: durationDefault });
+CustomEase.create("smooth", "M0,0 C0.38,0.005 0.215,1 1,1");
+gsap.defaults({ ease: "smooth", duration: durationDefault });
 
 // -----------------------------------------
 // FUNCTION REGISTRY
@@ -51,6 +52,8 @@ function initAfterEnterFunctions(next) {
 
   // Runs after enter animation completes
   // if (has('[data-something]')) initSomething();
+
+  console.log("Hello World Nymora Website 2026");
 
   if (hasLenis) {
     lenis.resize();
