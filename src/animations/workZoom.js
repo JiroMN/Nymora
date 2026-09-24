@@ -8,46 +8,80 @@ export function initWorkZoom() {
 
   if (!startEl || !endEl || !contentEl || !hero || !heroTitle) return;
 
-  let splitHeroTitle = SplitText.create(heroTitle, { type: "words" });
-
   // Hide Flip Placeholder
   startEl.style.opacity = 0;
 
-  // Set image to start state
-  Flip.fit(contentEl, startEl, { scale: false });
+  let ctx;
 
-  const flipTimeline = gsap.timeline({
-    scrollTrigger: {
-      trigger: startEl,
-      start: "clamp(top bottom)",
-      endTrigger: endEl,
-      end: "top top",
-      scrub: true,
-    },
-  });
+  function build() {
+    // Undo everything from the previous build (Flip, timelines, SplitText)
+    ctx?.revert();
 
-  // Animate from start to end state
-  flipTimeline.add(
-    Flip.fit(contentEl, endEl, { scale: false, duration: 1, ease: "none" }),
-  );
+    ctx = gsap.context(() => {
+      let splitHeroTitle = SplitText.create(heroTitle, { type: "words" });
 
-  const heroTimeline = gsap.timeline({
-    scrollTrigger: {
-      trigger: hero,
-      start: "clamp(top top)",
-      end: "30%",
-      scrub: true,
-    },
-  });
+      // Set image to start state
+      Flip.fit(contentEl, startEl, { scale: false });
 
-  heroTimeline.to(heroTitle, { yPercent: 150, ease: "none" }).to(
-    splitHeroTitle.words,
-    {
-      stagger: { amount: 0.075, from: "start" },
-      filter: "blur(10px)",
-      autoAlpha: 0,
-      yPercent: -50,
-    },
-    "<",
-  );
+      const flipTimeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: startEl,
+          start: "clamp(top bottom)",
+          endTrigger: endEl,
+          end: "top top",
+          scrub: true,
+        },
+      });
+
+      // Animate from start to end state
+      flipTimeline.add(
+        Flip.fit(contentEl, endEl, { scale: false, duration: 1, ease: "none" }),
+      );
+
+      const heroTimeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: hero,
+          start: "clamp(top top)",
+          end: "30%",
+          scrub: true,
+        },
+      });
+
+      heroTimeline.to(heroTitle, { yPercent: 150, ease: "none" }).to(
+        splitHeroTitle.words,
+        {
+          stagger: { amount: 0.075, from: "start" },
+          filter: "blur(10px)",
+          autoAlpha: 0,
+          yPercent: -50,
+        },
+        "<",
+      );
+    });
+  }
+
+  build();
+
+  // Rebuild when the width changes
+  let lastWidth = window.innerWidth;
+  let resizeTimer;
+
+  function onResize() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (window.innerWidth === lastWidth) return;
+      lastWidth = window.innerWidth;
+      build();
+      ScrollTrigger.refresh();
+    }, 200);
+  }
+
+  window.addEventListener("resize", onResize);
+
+  // Called by Barba before leaving the page
+  return function cleanup() {
+    clearTimeout(resizeTimer);
+    window.removeEventListener("resize", onResize);
+    ctx?.revert();
+  };
 }

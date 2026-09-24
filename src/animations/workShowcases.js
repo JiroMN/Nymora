@@ -4,7 +4,7 @@ export function initWorkShowcases() {
 
   if (!section || !work) return;
 
-  work.forEach((workItem) => {
+  work.forEach((workItem, index) => {
     const workTitle = workItem.querySelector("[data-work-showcase-title]");
     const workDescription = workItem.querySelector(
       "[data-work-showcase-description]",
@@ -40,20 +40,6 @@ export function initWorkShowcases() {
       },
     });
     workTimeline
-      .to(
-        workTextWrap,
-        {
-          yPercent: -10,
-        },
-        "<",
-      )
-      .to(
-        workCategoryWrap,
-        {
-          yPercent: -100,
-        },
-        "<",
-      )
       .from(
         titleSplit.words,
         {
@@ -73,6 +59,52 @@ export function initWorkShowcases() {
           filter: "blur(10px)",
         },
         ">",
+      );
+
+    // console.log("WorkItem", `${index}/${work.length - 1}`);
+    if (index >= work.length - 1) return; // Skip parallax for the last work item
+
+    let parallaxTimeline = gsap.timeline({
+      scrollTrigger: {
+        trigger: workItem,
+        start: "bottom bottom",
+        end: "bottom top",
+        scrub: true,
+      },
+    });
+
+    parallaxTimeline
+      .to(workItem, {
+        yPercent: 75,
+        ease: "none",
+      })
+      .to(
+        workTextWrap,
+        {
+          yPercent: -25,
+        },
+        "<",
+      )
+      .to(
+        workCategoryWrap,
+        {
+          yPercent: -250,
+        },
+        "<",
+      )
+      .to(
+        workTextWrap,
+        {
+          yPercent: -25,
+        },
+        "<",
+      )
+      .to(
+        workCategoryWrap,
+        {
+          filter: -150,
+        },
+        "<",
       );
   });
 }

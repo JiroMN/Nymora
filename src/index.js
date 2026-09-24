@@ -12,6 +12,7 @@ history.scrollRestoration = "manual";
 let lenis = null;
 let nextPage = document;
 let onceFunctionsInitialized = false;
+let workZoomCleanup = null;
 
 const hasLenis = typeof window.Lenis !== "undefined";
 const hasScrollTrigger = typeof window.ScrollTrigger !== "undefined";
@@ -56,7 +57,7 @@ function initAfterEnterFunctions(next) {
   // Runs after enter animation completes
   // if (has('[data-something]')) initSomething();
   if (has("[data-work-showcase-section]")) initWorkShowcases();
-  if (has("[data-work-item]")) initWorkZoom();
+  if (has("[data-work-item]")) workZoomCleanup = initWorkZoom();
 
   if (hasLenis) {
     lenis.resize();
@@ -156,6 +157,9 @@ barba.hooks.beforeEnter((data) => {
 });
 
 barba.hooks.afterLeave(() => {
+  workZoomCleanup?.();
+  workZoomCleanup = null;
+
   if (hasScrollTrigger) {
     ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
   }
