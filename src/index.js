@@ -2,6 +2,9 @@
 // OSMO PAGE TRANSITION BOILERPLATE
 // -----------------------------------------
 
+const { initWorkShowcases } = require("./animations/workShowcases");
+const { initWorkZoom } = require("./animations/workZoom");
+
 gsap.registerPlugin(CustomEase);
 
 history.scrollRestoration = "manual";
@@ -52,8 +55,8 @@ function initAfterEnterFunctions(next) {
 
   // Runs after enter animation completes
   // if (has('[data-something]')) initSomething();
-
-  console.log("Hello World Nymora Website 2026");
+  if (has("[data-work-showcase-section]")) initWorkShowcases();
+  if (has("[data-work-item]")) initWorkZoom();
 
   if (hasLenis) {
     lenis.resize();
