@@ -4,6 +4,7 @@
 
 const { initWorkShowcases } = require("./animations/workShowcases");
 const { initWorkZoom } = require("./animations/workZoom");
+const { initDepthMap } = require("./animations/depthMap");
 
 gsap.registerPlugin(CustomEase);
 
@@ -13,6 +14,7 @@ let lenis = null;
 let nextPage = document;
 let onceFunctionsInitialized = false;
 let workZoomCleanup = null;
+let depthMapCleanup = null;
 
 const hasLenis = typeof window.Lenis !== "undefined";
 const hasScrollTrigger = typeof window.ScrollTrigger !== "undefined";
@@ -58,6 +60,7 @@ function initAfterEnterFunctions(next) {
   // if (has('[data-something]')) initSomething();
   if (has("[data-work-showcase-section]")) initWorkShowcases();
   if (has("[data-work-item]")) workZoomCleanup = initWorkZoom();
+  if (has("[data-depth-map]")) depthMapCleanup = initDepthMap(nextPage);
 
   if (hasLenis) {
     lenis.resize();
@@ -159,6 +162,8 @@ barba.hooks.beforeEnter((data) => {
 barba.hooks.afterLeave(() => {
   workZoomCleanup?.();
   workZoomCleanup = null;
+  depthMapCleanup?.();
+  depthMapCleanup = null;
 
   if (hasScrollTrigger) {
     ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
