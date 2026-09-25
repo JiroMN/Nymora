@@ -60,7 +60,7 @@ function initAfterEnterFunctions(next) {
   // if (has('[data-something]')) initSomething();
   if (has("[data-work-showcase-section]")) initWorkShowcases();
   if (has("[data-work-item]")) workZoomCleanup = initWorkZoom();
-  if (has("[data-depth-map]")) depthMapCleanup = initDepthMap(nextPage);
+  if (has("[data-depth-map]")) depthMapCleanup = initDepthMap(nextPage, lenis);
 
   if (hasLenis) {
     lenis.resize();

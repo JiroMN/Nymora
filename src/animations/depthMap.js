@@ -97,7 +97,7 @@ async function enableGyro() {
 // INIT
 // -----------------------------------------
 
-export function initDepthMap(container = document) {
+export function initDepthMap(container = document, lenis = null) {
   const elements = container.querySelectorAll("[data-depth-map]");
   const reducedMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
@@ -121,7 +121,7 @@ export function initDepthMap(container = document) {
   if (isTouch && !needsPermission) enableGyro();
 
   elements.forEach((el) => {
-    const cleanup = createDepthMap(el);
+    const cleanup = createDepthMap(el, lenis);
     if (cleanup) cleanups.push(cleanup);
   });
 
@@ -135,7 +135,7 @@ export function initDepthMap(container = document) {
 // ONE DEPTH MAP
 // -----------------------------------------
 
-function createDepthMap(el) {
+function createDepthMap(el, lenis) {
   const imageEl = el.querySelector("[data-depth-image]");
   const sourceEl = el.querySelector("[data-depth-source]");
 
@@ -218,16 +218,17 @@ function createDepthMap(el) {
 
   let ready = false;
   let inView = true;
-  const state = { x: 0, y: 0, source: "none", lastInput: 0 };
+  const state = { x: 0, y: 0, scrollY: 0, source: "none", lastInput: 0 };
   const drawn = { x: null, y: null }; // Last drawn position, so idle frames cost nothing
 
   // --- Render
   const render = () => {
     if (!ready || !inView) return;
-    if (state.x === drawn.x && state.y === drawn.y) return;
+    const y = state.y + state.scrollY; // Mouse/gyro plus the scroll push
+    if (state.x === drawn.x && y === drawn.y) return;
     drawn.x = state.x;
-    drawn.y = state.y;
-    gl.uniform2f(uMouse, state.x, -state.y);
+    drawn.y = y;
+    gl.uniform2f(uMouse, state.x, -y);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   };
   gsap.ticker.add(render);
@@ -272,6 +273,10 @@ function createDepthMap(el) {
   const xTo = gsap.quickTo(state, "x", { duration: settings.smoothing, ease: "power3.out" });
   const yTo = gsap.quickTo(state, "y", { duration: settings.smoothing, ease: "power3.out" });
   const clamp = (value) => Math.max(-1, Math.min(1, value));
+
+  // Scroll: faster scrolling pushes the depth vertically (velocity carries the direction), stopping eases it back
+  const scrollTo = gsap.quickTo(state, "scrollY", { duration: settings.smoothing, ease: "power3.out" });
+  const offScroll = lenis?.on("scroll", ({ velocity }) => scrollTo(clamp(velocity / 10)));
 
   const setTarget = (x, y, source) => {
     state.source = source;
@@ -323,6 +328,7 @@ function createDepthMap(el) {
     el.removeEventListener("pointerup", onTouchEnd);
     el.removeEventListener("pointercancel", onTouchEnd);
     gyro.listeners.delete(onGyro);
+    offScroll?.();
     resizeObserver.disconnect();
     intersectionObserver.disconnect();
     gl.getExtension("WEBGL_lose_context")?.loseContext();
