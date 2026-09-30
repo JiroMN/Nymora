@@ -367,6 +367,7 @@ function initLenis() {
   lenis = new Lenis({
     lerp: 0.165,
     wheelMultiplier: 1.25,
+    syncTouch: true, // Touch scroll also runs through Lenis, so mobile doesn't stutter
   });
 
   if (hasScrollTrigger) {
