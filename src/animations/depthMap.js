@@ -76,7 +76,7 @@ function onDeviceOrientation(event) {
 }
 
 // iOS only allows this from a tap or click
-async function enableGyro() {
+export async function enableGyro() {
   if (gyro.active) return;
   if (typeof DeviceOrientationEvent === "undefined") return;
 

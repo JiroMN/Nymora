@@ -33,9 +33,11 @@ export function initWorkShowcases() {
     // Animating in
     const titleSplit = SplitText.create(workTitle, {
       type: "words",
+      wordsClass: "split-work-words",
     });
     const descriptionSplit = SplitText.create(workDescription, {
       type: "words",
+      wordsClass: "split-work-words",
     });
 
     // In: second half of the transition (item top from 50% of the screen to the top)
@@ -108,10 +110,9 @@ export function initWorkShowcases() {
       },
     );
 
-    // console.log("WorkItem", `${index}/${work.length - 1}`);
     if (index >= work.length - 1) return; // Skip parallax for the last work item
-
     // Out: first half of the transition, hold spans the whole thing (0 → 1)
+
     let parallaxTimeline = gsap.timeline({
       defaults: { ease: "power1.inOut" },
       scrollTrigger: {
@@ -136,7 +137,7 @@ export function initWorkShowcases() {
       .to(
         workMedia,
         {
-          yPercent: 100,
+          yPercent: 75,
           ease: "none",
           duration: 1,
         },

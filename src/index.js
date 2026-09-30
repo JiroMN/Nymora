@@ -5,6 +5,9 @@
 const { initWorkShowcases } = require("./animations/workShowcases");
 const { initWorkZoom } = require("./animations/workZoom");
 const { initDepthMap } = require("./animations/depthMap");
+const { needsGyroPrompt, showGyroPrompt } = require("./animations/gyroPrompt");
+const { initButtonBlurHover } = require("./animations/buttons");
+const { initDepthTool } = require("./animations/depthTool");
 
 gsap.registerPlugin(CustomEase);
 
@@ -15,6 +18,7 @@ let nextPage = document;
 let onceFunctionsInitialized = false;
 let workZoomCleanup = null;
 let depthMapCleanup = null;
+let depthToolCleanup = null;
 
 const hasLenis = typeof window.Lenis !== "undefined";
 const hasScrollTrigger = typeof window.ScrollTrigger !== "undefined";
@@ -57,10 +61,11 @@ function initAfterEnterFunctions(next) {
   nextPage = next || document;
 
   // Runs after enter animation completes
-  // if (has('[data-something]')) initSomething();
+  // if (has("[data-button-blur-hover]")) initButtonBlurHover();
   if (has("[data-work-showcase-section]")) initWorkShowcases();
   if (has("[data-work-item]")) workZoomCleanup = initWorkZoom();
   if (has("[data-depth-map]")) depthMapCleanup = initDepthMap(nextPage, lenis);
+  if (has("[data-depth-tool]")) depthToolCleanup = initDepthTool(nextPage);
 
   if (hasLenis) {
     lenis.resize();
@@ -76,17 +81,118 @@ function initAfterEnterFunctions(next) {
 // -----------------------------------------
 
 function runPageOnceAnimation(next) {
-  const tl = gsap.timeline();
+  const tl = gsap.timeline({
+    defaults: {
+      duration: 0.6,
+    },
+  });
+  const pageLoader = document.querySelector("[data-page-loader]");
+  const pageLoaderContent = pageLoader?.querySelector(
+    "[data-page-loader-content]",
+  );
+  const pageLoaderBg = pageLoader?.querySelector("[data-page-loader-bg]");
+  const pageLoaderLines = pageLoaderContent?.querySelectorAll(
+    "[data-page-loader-line]",
+  );
+  const pageLoaderLeftLine = pageLoaderContent?.querySelector(
+    "[data-page-loader-line='left']",
+  );
+  const pageLoaderRightLine = pageLoaderContent?.querySelector(
+    "[data-page-loader-line='right']",
+  );
+  const pageLoaderTextContainer = pageLoaderContent?.querySelector(
+    "[data-page-loader-text-container]",
+  );
+  const pageLoaderGreeting = pageLoaderTextContainer?.querySelector(
+    "[data-page-loader-text-greeting]",
+  );
+  const pageLoaderWordmark = pageLoaderTextContainer?.querySelector(
+    "[data-page-loader-text-wordmark]",
+  );
+
+  gsap.set(pageLoaderContent, { opacity: 1 });
+
+  tl.add("startOnce", 0.3);
+  tl.add("pageReady", "startOnce");
+
+  tl.from(pageLoaderLeftLine, { clipPath: "inset(0 0 0 100%)" }, "startOnce")
+    .from(pageLoaderRightLine, { clipPath: "inset(0 100% 0 0)" }, "<")
+    .from(
+      pageLoaderGreeting,
+      { autoAlpha: 0, yPercent: 100, filter: "blur(10px)" },
+      "<50%",
+    )
+    .to(pageLoaderGreeting, { autoAlpha: 0, yPercent: -100 }, "+=0.5")
+    .fromTo(
+      pageLoaderWordmark,
+      { autoAlpha: 0, yPercent: 100, filter: "blur(10px)" },
+      { autoAlpha: 1, yPercent: 0, filter: "blur(0px)" },
+      "<",
+    )
+    .from(
+      pageLoaderTextContainer,
+      {
+        width: () => pageLoaderGreeting.scrollWidth,
+        clearProps: "width",
+      },
+      ">",
+    )
+    // Animate loader out
+    .to(
+      pageLoaderContent,
+      { scale: 1.2, filter: "blur(2px)", autoAlpha: 0, duration: 0.6 },
+      "+=0.6",
+    )
+    // Prepare hero load in
+    .add(() => {
+      const hero = next.querySelector("[data-hero-section]");
+      if (!hero) return;
+      const heroTitleWords = hero.querySelectorAll(".split-hero-words");
+      const heroImage = next.querySelector(
+        "[data-work-item] [data-bg-zoom-content]",
+      ); // First work item's media, placed in the hero by Flip
+
+      gsap.set(heroTitleWords, { autoAlpha: 0, filter: "blur(10px)" });
+      gsap.set(heroImage, { autoAlpha: 0, filter: "blur(2px)" });
+    }, "<")
+
+    // iOS: wait here until the gyro prompt is answered
+    .addPause("<50%", () => {
+      if (!needsGyroPrompt()) return tl.resume();
+      showGyroPrompt(() => tl.resume());
+    })
+    .to(pageLoaderBg, { yPercent: 100, duration: 0.6 })
+
+    // Animate in hero
+    .add(() => {
+      const hero = next.querySelector("[data-hero-section]");
+      if (!hero) return;
+      const heroTitleWords = hero.querySelectorAll(".split-hero-words");
+      const heroImage = next.querySelector(
+        "[data-work-item] [data-bg-zoom-content]",
+      ); // First work item's media, placed in the hero by Flip
+
+      gsap
+        .timeline()
+        .to(heroTitleWords, {
+          filter: "blur(0px)",
+          autoAlpha: 1,
+          stagger: 0.05,
+        })
+        .to(heroImage, { autoAlpha: 1, filter: "blur(0px)" }, "<50%");
+    });
 
   tl.call(
     () => {
       resetPage(next);
     },
     null,
-    0,
+    "pageReady",
   );
 
-  return tl;
+  return new Promise((resolve) => {
+    tl.call(resolve, null, "pageReady");
+  });
 }
 
 function runPageLeaveAnimation(current, next) {
@@ -164,6 +270,8 @@ barba.hooks.afterLeave(() => {
   workZoomCleanup = null;
   depthMapCleanup?.();
   depthMapCleanup = null;
+  depthToolCleanup?.();
+  depthToolCleanup = null;
 
   if (hasScrollTrigger) {
     ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
