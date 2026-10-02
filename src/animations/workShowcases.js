@@ -104,7 +104,7 @@ export function initWorkShowcases() {
         scrollTrigger: {
           trigger: workItem,
           start: "top bottom",
-          end: "bottom bottom", // Same point where the out-tween takes over, also when the item (svh) isn't exactly screen height
+          end: "bottom bottom", // Same point where the out-tween takes over, also when the item isn't exactly screen height
           scrub: true,
         },
       },
