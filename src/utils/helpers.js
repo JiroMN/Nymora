@@ -23,5 +23,6 @@ export function initLiveDate() {
 
   liveDateElement.forEach((elem) => {
     elem.textContent = year;
+    console.log(`Updated live date for element: ${elem} date: ${year}`);
   });
 }
