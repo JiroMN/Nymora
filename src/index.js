@@ -8,6 +8,7 @@ const { initDepthMap } = require("./animations/depthMap");
 const { needsGyroPrompt, showGyroPrompt } = require("./animations/gyroPrompt");
 const { initButtonBlurHover } = require("./animations/buttons");
 const { initDepthTool } = require("./animations/depthTool");
+const { initLiveDate } = require("./utils/helpers");
 
 gsap.registerPlugin(CustomEase);
 
@@ -62,6 +63,7 @@ function initAfterEnterFunctions(next) {
 
   // Runs after enter animation completes
   // if (has("[data-button-blur-hover]")) initButtonBlurHover();
+  if (has("[data-live-date]")) initLiveDate();
   if (has("[data-work-showcase-section]")) initWorkShowcases();
   if (has("[data-work-item]")) workZoomCleanup = initWorkZoom();
   if (has("[data-depth-map]")) depthMapCleanup = initDepthMap(nextPage, lenis);
